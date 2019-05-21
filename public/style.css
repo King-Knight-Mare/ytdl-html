@@ -1,0 +1,112 @@
+#searchForm {
+    height:100%
+}
+
+#searchContainer {
+    position:fixed;
+    width:100%;
+    text-align:center;
+    height:20%;
+    background:lightgray;
+}
+#search {
+    width: 750px;
+    font-size:18px;
+    padding:10px;
+    border:none;
+    background-color:#eee;
+}
+#searchButton {
+    font-size:18px;
+    padding:10px;
+    width:45px;
+    margin-left:-50px;
+    border:none;
+}
+#sortBy {
+    font-size:14px;
+    padding:7px;
+    border:none;
+}
+.downloadButton {
+    border:none;
+    background:none
+}
+.vid {
+    margin-left:30px;
+    width:480px;
+}
+.thumbnail {
+    height:360px;
+    width:480px;
+    border:none;
+    cursor:pointer;
+}
+.title {
+    margin-top:-350px;
+    margin-bottom:350px;
+    margin-left:20px;
+    color:white;
+}
+#bottom {
+    position:relative;
+    top:20%;
+    height:80%
+}
+#res {
+    float:left;
+    width:70%;
+    min-width:70%;
+    height:100%;
+    min-height:100%;
+    overflow:hidden;
+    margin:0;
+}
+#notifications {
+    float:right;
+    width:29.92%;
+    height:100%;
+    min-height:100%;
+    border-left:grey solid 1px;
+    margin:0;
+}
+#results {
+    height:100%;
+    overflow:auto;
+}
+body, html {
+    margin:0;
+    width:100%;
+    height:100%;
+}
+.notif {
+    padding:7px;
+    border:black 2px solid;
+    width:80%;
+    margin:auto;
+    margin-top:20px;
+    opacity:1.0;
+    transition:top 2s;
+}
+.notifTitle {
+    margin:0
+}
+.notifBody {
+    margin:0;
+    font-size:10px;
+}
+.channel {
+    margin-left:30px;
+    margin-bottom:30px;
+    height:15%;
+}
+.cthumbnail {
+    width:7%;
+    border-radius:50%;
+    float:left;
+}
+.ctitle {
+    float:right;
+    margin:auto;
+  
+}
