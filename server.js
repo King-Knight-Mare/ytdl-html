@@ -9,14 +9,17 @@ const fs = require('fs');
 const express = require('express');
 const app = express();
 const server = http.Server(app);
+const Mapper = require('./mapper.js')
 const port = process.env.PORT || 5000;
 const socketIO = require('socket.io');
 const io = socketIO(server);
 const youtube = require('./src/youtube.js')
 let yt = new youtube('AIzaSyCuGHc2cSDYfkee9cn9iqY71nPaZ_NsSRc')
+let files = new Mapper()
 let queue = []
 let currDl = false
 let vidDl = false
+let limit = 165 * 1000 * 1000
 let deleteFolderRecursive = function(path) {
     if( fs.existsSync(path) ) {
             fs.readdirSync(path).forEach(function(file,index){
@@ -37,6 +40,7 @@ setInterval(() => {
     if(fs.existsSync(__dirname + '/.git')) deleteFolderRecursive(__dirname + '/.git')
     if (!fs.existsSync(__dirname + '/videos')) fs.mkdirSync(__dirname + '/videos');
 }, 10000)
+
 let nextQueue = () => {
     queue.splice(0, 1)
     if(!queue[0]) return
@@ -74,10 +78,20 @@ let nextQueue = () => {
         }
     }, 20000)
     let notifId = notif.id
+    yt.getLength(url).then(lengths => {
+        let itags = [
+            '136',
+            '135',
+            '134',
+            '133'
+        ]
+        
+    })
     yt.downloadVideo(url, __dirname, vid)
-         .then(() => {
+         .then(({total}) => {
               vid.title  = vid.title.replace(/[\W_]+/g," ");
               socket.emit('done', {fileName: vid.title + '.mp4', notifId: notifId})
+              files.set(vid.title + '.mp4', total)
               socket.emit('notif', {
                   id:notifId,
                   title:`Now downloading : ${vid.title} !`,
@@ -116,7 +130,17 @@ app.get('/', function(request, response) {
 server.listen(process.env.PORT, function() {
   console.log('Your app is listening on port ' + server.address().port);
 });
+yt.getLength('https://youtube.com/?v=VNlm_ksTXr4')
 io.on('connection', socket => {
+    socket.on('disconnect', () => {
+        if(!queue[0]) return
+        let n
+        if(queue[0].socket.id == socket.id) n = true
+        queue.forEach((l, i) => {
+            if(l.socket.id == socket.id) queue.splice(i,  1)
+        })
+        if(n) nextQueue()
+    })
     socket.on('search', sent => {
         yt.search(sent.query, 50, sent.sortBy)
             .then(vids => {
@@ -169,9 +193,10 @@ io.on('connection', socket => {
                 }
             }, 20000)
             yt.downloadVideo(url, __dirname, vid)
-               .then(() => {
+               .then(({total}) => {
                     vid.title  = vid.title.replace(/[\W_]+/g," ");
                     socket.emit('done', {fileName: vid.title + '.mp4', notifId: notifId})
+                    files.set(vid.title + '.mp4', total)
                     socket.emit('notif', {
                         id:notifId,
                         title:`Now downloading : ${vid.title} !`,

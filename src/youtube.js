@@ -127,8 +127,7 @@ class YoutubeInteractor {
                 resolve();
             } else {
                 ytdl.getInfo(vid.id).then((info) => {
-                    var format = info.formats[0]
-                    ytdl.chooseFormat(info.formats, {quality: '18'})
+                    var format = ytdl.chooseFormat(info.formats, {quality: 'highest'})
                     var parsed = url.parse(format.url);
                     parsed.method = 'HEAD'; // We only want headers to get the filesize
                     rp({
@@ -138,7 +137,7 @@ class YoutubeInteractor {
                         .then(res => {
                             if (res['content-length'] > limit){
                                  ytdl.getInfo(vid.id).then((info) => {
-                                    format = ytdl.chooseFormat(info.formats, {quality: 'lowest'})
+                                    format = ytdl.chooseFormat(info.formats, {quality: '18'})
                                     rp({
                                         uri: format.url,
                                         method:'HEAD'
@@ -146,6 +145,20 @@ class YoutubeInteractor {
                                         .then(res => {
                                             if (res['content-length'] > limit){
                                                 reject('File too big')
+                                            }else {
+                                                let total = res['content-length'];
+                                                let video = ytdl(vurl.href, {format:format});
+                                                video.pipe(fs.createWriteStream(output, { flags: 'a' }));
+                                                // Will be called if download was already completed and there is nothing more to download.
+                                                video.on('complete', function complete(info) {
+                                                    'use strict';
+                                                    console.log('filename: ' + info._filename + ' already downloaded.');
+                                                    resolve({total: total})
+                                                });
+
+                                                video.on('end', function() {
+                                                    resolve({total: total})
+                                                });
                                             }
                                         })
                                   //reject('File too big')
@@ -153,18 +166,18 @@ class YoutubeInteractor {
                                                            
                             }
                             else {
-                                var total = res['content-length']/1000000 + 'mb';
-                                let video = ytdl(vurl.href/*, {format:format}*/);
+                                let total = res['content-length'];
+                                let video = ytdl(vurl.href, {format:format});
                                 video.pipe(fs.createWriteStream(output, { flags: 'a' }));
                                 // Will be called if download was already completed and there is nothing more to download.
                                 video.on('complete', function complete(info) {
                                     'use strict';
                                     console.log('filename: ' + info._filename + ' already downloaded.');
-                                    resolve()
+                                    resolve({total: total})
                                 });
 
                                 video.on('end', function() {
-                                    resolve()
+                                    resolve({total: total})
                                     console.log('halp')
                                 });
                             }
@@ -172,6 +185,35 @@ class YoutubeInteractor {
                   });
                   
             }
+        })
+    }
+    async getLength(vurl){
+        return new Promise((resolve, reject) => {
+            vurl = url.parse(vurl)
+            let id = vurl.query.substr(2)
+            
+            ytdl.getInfo(id).then((info) => {
+                var format = ytdl.chooseFormat(info.formats, {quality: 'highest'})
+                let formats = [
+                    info.formats.find(f => f.itag == '136'),
+                    info.formats.find(f => f.itag == '135'),
+                    info.formats.find(f => f.itag == '134'),
+                    info.formats.find(f => f.itag == '133'),
+                ]
+                let fpromises = formats.map(f => {
+                    if(!f) return null
+                    return rp({
+                        uri: f.url,
+                        method:'HEAD'
+                    })
+                })
+                  
+                Promise.all(fpromises).then(values => {
+                    console.log(values.map(r => r['content-length']))
+                    resolve(values.map(r => r['content-length']))
+                })
+                
+            })
         })
     }
 }
