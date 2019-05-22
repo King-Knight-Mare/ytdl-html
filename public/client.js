@@ -188,12 +188,6 @@ socket.on('done', ({fileName, notifId}) => {
     }, 10000)
 })
 socket.on('err', document.write)
-socket.on('queuing', l => {
-    
-    document.getElementById('queuing').style.display = 'block'
-    document.getElementById('qnum').innerHTML = l.n
-    document.getElementById('tooBig').style.display = 'none'
-})
 socket.on('notif', notif => {
     if(notif.edit){
         let n = notifs.get(notif.id)
@@ -211,22 +205,6 @@ socket.on('notifUpdate', up => {
     notif.titleElement.innerHTML = up.title
     notif.bodyElement.innerHTML = up.body
     if(notif._type == 'dwnld') downloadNotif = notif
-})
-socket.on('downloading', () => {
-    document.getElementById('downloading').style.display = 'block'
-    
-    document.getElementById('queuing').style.display = 'none'
-    document.getElementById('tooBig').style.display = 'none'
-    //alert('downloading')
-})
-socket.on('tooBig', () => {
-    document.getElementById('tooBig').style.display = 'block'
-    document.getElementById('queuing').style.display = 'none'
-    document.getElementById('downloading').style.display = 'none'
-    setTimeout(() => {
-        document.getElementById('tooBig').style.display = 'none'
-    }, 3000)
-    
 })
 document.getElementById('searchForm').addEventListener('submit', e => {
     e.preventDefault()
